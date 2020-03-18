@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 type Participant struct {
 	ID      string `json:"id"`
@@ -10,7 +13,14 @@ type Participant struct {
 
 var participants []Participant
 
-//Insert partcipants getting into a specfic room
+//InsertParticipant insert a specific participant into a cache room
 func InsertParticipant(p Participant) {
+	var err error
+
+	_, err = GetRedis().conn.Do("HMSET", p.ID, "ID", p.ID, "name", p.Name, "content", p.Content)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Println(p)
 }

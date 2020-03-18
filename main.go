@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -12,8 +11,8 @@ import (
 
 // função principal
 func main() {
-	router := mux.NewRouter()
 
+	router := mux.NewRouter()
 	router.HandleFunc("/join", ParticipantJoined).Methods("POST")
 
 	c := cors.New(cors.Options{
@@ -35,6 +34,7 @@ func ParticipantJoined(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&p); err != nil {
 		return
 	}
+	InsertParticipant(p)
+
 	defer r.Body.Close()
-	fmt.Println(p)
 }
