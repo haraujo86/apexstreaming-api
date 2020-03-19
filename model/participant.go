@@ -5,6 +5,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/haraujo86/apexstreaming-api/infrastructure"
+	"github.com/haraujo86/apexstreaming-api/util"
 )
 
 type Participant struct {
@@ -15,7 +16,7 @@ type Participant struct {
 
 var participants []Participant
 
-//InsertParticipant insert a specific participant into a cache room
+// InsertParticipant insert a specific participant into a cache room
 func InsertParticipant(p Participant) (string, error) {
 
 	var err error
@@ -29,7 +30,8 @@ func InsertParticipant(p Participant) (string, error) {
 	return p.ID, err
 }
 
-func GetParticipant(key string) Participant {
+// GetParticipant return a specific participant
+func GetParticipant(key string) (Participant, error) {
 
 	conn := infrastructure.GetRedis().Conn
 
@@ -39,51 +41,22 @@ func GetParticipant(key string) Participant {
 	data, err := redis.Values(conn.Do("HGETALL", key))
 
 	if err != nil {
-		fmt.Println("Error getting key %s: %v", key, err)
-		return part
-	}
-	scanValues, err = scanMap(data)
-	return convertMapToParticipant(scanValues)
-}
-
-func convertMapToParticipant(m map[string]string) Participant {
-	var participantSplit Participant
-
-	participantSplit.ID = m["ID"]
-	participantSplit.Name = m["name"]
-	participantSplit.Content = m["content"]
-
-	return participantSplit
-}
-
-func scanMap(values []interface{}) (map[string]string, error) {
-	results := make(map[string]string)
-	var err error
-
-	for len(values) > 0 {
-		var key string
-		var value string
-
-		values, err = redis.Scan(values, &key)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if len(values) > 0 {
-			values, err = redis.Scan(values, &value)
-
-			if err != nil {
-				return nil, err
-			}
-
-			results[key] = value
-		} else {
-			fmt.Println("Unable to find value for %s.", key)
-			results[key] = ""
-		}
-
+		return part, err
 	}
 
-	return results, nil
+	scanValues, err = util.ScanToMap(data)
+
+	if err != nil {
+		return part, err
+	}
+
+	return convertMapToParticipant(scanValues), nil
+}
+
+func convertMapToParticipant(m map[string]string) (p Participant) {
+	p.ID = m["ID"]
+	p.Name = m["name"]
+	p.Content = m["content"]
+
+	return p
 }

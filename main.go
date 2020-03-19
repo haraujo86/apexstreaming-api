@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -11,12 +10,11 @@ import (
 	"github.com/rs/cors"
 )
 
-// função principal
 func main() {
 
 	router := mux.NewRouter()
-	router.HandleFunc("/join", ParticipantJoined).Methods("POST")
-	router.HandleFunc("/participant/{id}", ParticipantWhoIs).Methods("GET")
+	router.HandleFunc("/participant", participantJoined).Methods("POST")
+	router.HandleFunc("/participant/{id}", participantWhoIs).Methods("GET")
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -31,7 +29,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8000", handler))
 }
 
-func ParticipantJoined(w http.ResponseWriter, r *http.Request) {
+func participantJoined(w http.ResponseWriter, r *http.Request) {
 	var p model.Participant
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&p); err != nil {
@@ -41,7 +39,21 @@ func ParticipantJoined(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 }
 
-func ParticipantWhoIs(w http.ResponseWriter, r *http.Request) {
+func participantWhoIs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fmt.Println(model.GetParticipant(vars["id"]))
+
+	var id string = vars["id"]
+	participant, err := model.GetParticipant(id)
+	if err != nil {
+		return
+	}
+
+	participantJson, err := json.Marshal(participant)
+	if err != nil {
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(participantJson)
 }
