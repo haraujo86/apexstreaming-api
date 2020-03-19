@@ -1,9 +1,10 @@
-package main
+package model
 
 import (
 	"fmt"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/haraujo86/apexstreaming-api/infrastructure"
 )
 
 type Participant struct {
@@ -18,7 +19,7 @@ var participants []Participant
 func InsertParticipant(p Participant) (string, error) {
 
 	var err error
-	conn := GetRedis().conn
+	conn := infrastructure.GetRedis().Conn
 
 	_, err = conn.Do("HMSET", p.ID, "ID", p.ID, "name", p.Name, "content", p.Content)
 
@@ -30,7 +31,7 @@ func InsertParticipant(p Participant) (string, error) {
 
 func GetParticipant(key string) Participant {
 
-	conn := GetRedis().conn
+	conn := infrastructure.GetRedis().Conn
 
 	var part Participant
 	var scanValues = make(map[string]string)

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/haraujo86/apexstreaming-api/model"
 	"github.com/rs/cors"
 )
 
@@ -31,16 +32,16 @@ func main() {
 }
 
 func ParticipantJoined(w http.ResponseWriter, r *http.Request) {
-	var p Participant
+	var p model.Participant
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&p); err != nil {
 		return
 	}
-	InsertParticipant(p)
+	model.InsertParticipant(p)
 	defer r.Body.Close()
 }
 
 func ParticipantWhoIs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fmt.Println(GetParticipant(vars["id"]))
+	fmt.Println(model.GetParticipant(vars["id"]))
 }

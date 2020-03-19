@@ -1,4 +1,4 @@
-package main
+package infrastructure
 
 import (
 	"log"
@@ -9,7 +9,7 @@ import (
 
 //RedisConn is a structure to keep a redis connection session
 type RedisConn struct {
-	conn redis.Conn
+	Conn redis.Conn
 }
 
 var rdb *RedisConn
@@ -22,7 +22,7 @@ func GetRedis() *RedisConn {
 		if err != nil {
 			log.Fatal(err)
 		}
-		rdb = &RedisConn{conn: connection}
+		rdb = &RedisConn{Conn: connection}
 	})
 	return rdb
 }
