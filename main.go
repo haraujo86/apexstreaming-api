@@ -33,9 +33,17 @@ func participantJoined(w http.ResponseWriter, r *http.Request) {
 	var p model.Participant
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&p); err != nil {
+		log.Printf("Error decoding data, %v", err)
+		w.WriteHeader(500)
 		return
 	}
-	model.InsertParticipant(p)
+
+	if _, err := model.InsertParticipant(p); err != nil {
+		log.Printf("Error decoding data, %v", err)
+		w.WriteHeader(500)
+		return
+	}
+
 	defer r.Body.Close()
 }
 
@@ -45,15 +53,24 @@ func participantWhoIs(w http.ResponseWriter, r *http.Request) {
 	var id string = vars["id"]
 	participant, err := model.GetParticipant(id)
 	if err != nil {
+		log.Printf("Error getting data, %v", err)
+		w.WriteHeader(400)
+		return
+	}
+
+	if len(participant.ID) == 0 {
+		w.WriteHeader(404)
 		return
 	}
 
 	participantJson, err := json.Marshal(participant)
 	if err != nil {
+		log.Printf("Error unmarshalling data, %v", err)
+		w.WriteHeader(500)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(200)
 	w.Write(participantJson)
 }

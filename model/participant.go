@@ -5,11 +5,10 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/haraujo86/apexstreaming-api/infrastructure"
-	"github.com/haraujo86/apexstreaming-api/util"
 )
 
 type Participant struct {
-	ID      string `json:"id"`
+	ID      string `json:"ID"`
 	Name    string `json:"name"`
 	Content string `json:"content"`
 }
@@ -22,12 +21,12 @@ func InsertParticipant(p Participant) (string, error) {
 	var err error
 	conn := infrastructure.GetRedis().Conn
 
-	_, err = conn.Do("HMSET", p.ID, "ID", p.ID, "name", p.Name, "content", p.Content)
+	_, err = conn.Do("HMSET", p.ID, "ID", p.ID, "Name", p.Name, "Content", p.Content)
 
 	if err != nil {
 		return p.ID, fmt.Errorf("Error setting key %s: %v", p.ID, err)
 	}
-	return p.ID, err
+	return p.ID, nil
 }
 
 // GetParticipant return a specific participant
@@ -35,28 +34,18 @@ func GetParticipant(key string) (Participant, error) {
 
 	conn := infrastructure.GetRedis().Conn
 
-	var part Participant
-	var scanValues = make(map[string]string)
+	var participant Participant
 	var data []interface{}
+
 	data, err := redis.Values(conn.Do("HGETALL", key))
-
 	if err != nil {
-		return part, err
+		return participant, err
 	}
 
-	scanValues, err = util.ScanToMap(data)
-
+	err = redis.ScanStruct(data, &participant)
 	if err != nil {
-		return part, err
+		return participant, err
 	}
 
-	return convertMapToParticipant(scanValues), nil
-}
-
-func convertMapToParticipant(m map[string]string) (p Participant) {
-	p.ID = m["ID"]
-	p.Name = m["name"]
-	p.Content = m["content"]
-
-	return p
+	return participant, err
 }
